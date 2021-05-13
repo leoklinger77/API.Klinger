@@ -2,6 +2,7 @@
 using AutoMapper;
 using Business.Interfaces;
 using Business.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -27,7 +28,7 @@ namespace Api.Klinger.Controllers
         [HttpGet]
         public async Task<ActionResult> FindAll()
         {
-            return CustomResponse(_mapper.Map<ProductViewModel>(await _productRepository.FindAllProductsSupplier()));
+            return CustomResponse(await _productRepository.FindAllProductsSupplier());
         }
         [HttpGet("{id:Guid}")]
         public async Task<ActionResult> FindByProduct(Guid id)
@@ -52,6 +53,24 @@ namespace Api.Klinger.Controllers
 
             return CustomResponse(productViewModel);
         }
+        [RequestSizeLimit(700000000)]
+        [HttpPost("image")]
+        public async Task<ActionResult> Image(ProductImageViewModel productImage)
+        {           
+
+            if (!ModelState.IsValid) return CustomResponse(ModelState);
+
+            string imageName = Guid.NewGuid() + "";
+            if (!await UpdateBig(productImage.ImagemUploud, imageName))
+            {
+                return CustomResponse(productImage);
+            }
+            productImage.Image = imageName + productImage.ImagemUploud.FileName;
+
+            await _productService.Add(_mapper.Map<Product>(productImage));
+
+            return CustomResponse(productImage);
+        }
 
 
         [HttpDelete("{id:Guid}")]
@@ -68,13 +87,13 @@ namespace Api.Klinger.Controllers
         }
 
         private bool UpdateFile(string file, string imgName)
-        {
-            var imageDataByteArray = Convert.FromBase64String(file);
+        {            
             if (string.IsNullOrEmpty(file))
             {
                 ErrorNotifier("Forneça uma imagem para este produto!");
                 return false;
             }
+            var imageDataByteArray = Convert.FromBase64String(file);
             var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/imagens", imgName);
 
             if (System.IO.File.Exists(filePath))
@@ -86,6 +105,28 @@ namespace Api.Klinger.Controllers
             {
                 System.IO.File.WriteAllBytes(filePath, imageDataByteArray);
             }).Start();            
+            return true;
+        }
+
+        private async Task<bool> UpdateBig(IFormFile file, string imgName)
+        {
+            if (file == null || file.Length == 0)
+            {
+                ErrorNotifier("Forneça uma imagem para este produto!");
+                return false;
+            }
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/imagens", imgName + file.FileName);
+            if (System.IO.File.Exists(filePath))
+            {
+                ErrorNotifier("Já existe um arquivo com esse nome!");
+                return false;
+            }
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
             return true;
         }
 

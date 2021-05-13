@@ -42,6 +42,8 @@ namespace Api.Klinger
             {
                 options.SuppressModelStateInvalidFilter = true;
             });
+                       
+
             services.ResolveDependencies();
             
         }
@@ -61,7 +63,7 @@ namespace Api.Klinger
             app.UseRouting();
 
             app.UseAuthorization();
-
+         
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

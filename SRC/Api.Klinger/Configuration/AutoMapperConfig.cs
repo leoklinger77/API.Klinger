@@ -10,7 +10,15 @@ namespace Api.Klinger.Configuration
         {
             CreateMap<Supplier, SupplierViewModel>().ReverseMap();
             CreateMap<Address, AddressViewModel>().ReverseMap();
-            CreateMap<Product, ProductViewModel>().ReverseMap();
+            CreateMap<ProductViewModel, Product>();
+
+            CreateMap<Product, ProductViewModel>()
+                .ForMember(dest => dest.SupplierName, opt => opt.MapFrom(src => src.Supplier.Name));
+
+            CreateMap<ProductImageViewModel, Product>();
+
+            CreateMap<Product, ProductImageViewModel>()
+                .ForMember(dest => dest.SupplierName, opt => opt.MapFrom(src => src.Supplier.Name));
         }
     }
 }
