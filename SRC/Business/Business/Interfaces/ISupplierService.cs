@@ -9,7 +9,6 @@ namespace Business.Interfaces
         Task<bool> Insert(Supplier supplier);
         Task<bool> Update(Supplier supplier);
         Task<bool> Remove(Guid id);
-
         Task UpdateAddress(Address address);
     }
 }

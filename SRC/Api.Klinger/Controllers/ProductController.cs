@@ -2,17 +2,17 @@
 using AutoMapper;
 using Business.Interfaces;
 using Business.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Api.Klinger.Controllers
 {
+    [Authorize]
     [Route("api/Product")]
     public class ProductController : MainController
     {
@@ -53,7 +53,7 @@ namespace Api.Klinger.Controllers
 
             return CustomResponse(productViewModel);
         }
-        [RequestSizeLimit(700000000)]
+        [RequestSizeLimit(7000000000000000000)]
         [HttpPost("image")]
         public async Task<ActionResult> Image(ProductImageViewModel productImage)
         {           
@@ -61,7 +61,7 @@ namespace Api.Klinger.Controllers
             if (!ModelState.IsValid) return CustomResponse(ModelState);
 
             string imageName = Guid.NewGuid() + "";
-            if (!await UpdateBig(productImage.ImagemUploud, imageName))
+            if (!UpdateBig(productImage.ImagemUploud, imageName))
             {
                 return CustomResponse(productImage);
             }
@@ -71,8 +71,6 @@ namespace Api.Klinger.Controllers
 
             return CustomResponse(productImage);
         }
-
-
         [HttpDelete("{id:Guid}")]
         public async Task<ActionResult> Delete(Guid id)
         {
@@ -84,6 +82,39 @@ namespace Api.Klinger.Controllers
             }
             await _productService.Remover(id);
             return CustomResponse();
+        }
+        [HttpPut("{id:Guid}")]
+        public async Task<IActionResult> Update(Guid id, ProductViewModel productViewModel)
+        {
+            if(id != productViewModel.Id)
+            {
+                ErrorNotifier("O Id informado não é o mesmo que foi passado na query");
+                return CustomResponse(productViewModel);
+            }
+
+            var productUpdate = await FindById(id);
+            productUpdate.Image = productUpdate.Image;
+
+            if (!ModelState.IsValid) return CustomResponse(ModelState);
+
+            if (productViewModel.ImagemUploud != null)
+            {
+                var imageName = Guid.NewGuid() + "_" + productViewModel.Image;
+                if (!UpdateFile(productViewModel.ImagemUploud, imageName))
+                {
+                    return CustomResponse();
+                }
+                productViewModel.Image = imageName;
+            }
+
+            productUpdate.Name = productViewModel.Name;
+            productUpdate.Description = productViewModel.Description;
+            productUpdate.Value = productViewModel.Value;
+            productUpdate.Active = productViewModel.Active;
+
+            await _productService.Update(_mapper.Map<Product>(productUpdate));
+
+            return CustomResponse(productViewModel);
         }
 
         private bool UpdateFile(string file, string imgName)
@@ -107,8 +138,7 @@ namespace Api.Klinger.Controllers
             }).Start();            
             return true;
         }
-
-        private async Task<bool> UpdateBig(IFormFile file, string imgName)
+        private bool UpdateBig(IFormFile file, string imgName)
         {
             if (file == null || file.Length == 0)
             {
@@ -122,14 +152,15 @@ namespace Api.Klinger.Controllers
                 return false;
             }
 
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
+            new Thread(() => {
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    file.CopyToAsync(stream);
+                }
+            }).Start();           
 
             return true;
         }
-
         private async Task<ProductViewModel> FindById(Guid id)
         {
             return _mapper.Map<ProductViewModel>(await _productRepository.FindById(id));
