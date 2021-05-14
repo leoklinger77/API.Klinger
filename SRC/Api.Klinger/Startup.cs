@@ -36,8 +36,7 @@ namespace Api.Klinger
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Api.Klinger v1"));
             }
 
-            app.UseHttpsRedirection();
-            app.UseAuthentication();
+            app.UseHttpsRedirection();            
             app.UseMvcConfiguration();
         }
     }

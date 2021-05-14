@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace Api.Klinger.Controllers
 {
+    [Authorize]
     [Route("api/supplier")]
     public class SupplierController : MainController
     {

@@ -23,13 +23,12 @@ namespace Api.Klinger.Controllers
         {
             _productService = productService;
             _productRepository = productRepository;
-        }
-
+        }        
         [HttpGet]
         public async Task<ActionResult> FindAll()
         {
             return CustomResponse(await _productRepository.FindAllProductsSupplier());
-        }
+        }        
         [HttpGet("{id:Guid}")]
         public async Task<ActionResult> FindByProduct(Guid id)
         {

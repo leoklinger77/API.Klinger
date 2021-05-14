@@ -19,13 +19,16 @@ namespace Api.Klinger.Configuration
             {
                 options.SuppressModelStateInvalidFilter = true;
             });
+                        
 
             return services;
         }
         public static IApplicationBuilder UseMvcConfiguration(this IApplicationBuilder app)
         {
             app.UseRouting();
+            app.UseAuthentication();            
             app.UseAuthorization();
+                        
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
