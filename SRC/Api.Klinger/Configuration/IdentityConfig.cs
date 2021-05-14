@@ -1,4 +1,5 @@
 ﻿using Api.Klinger.Data;
+using Api.Klinger.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -15,6 +16,7 @@ namespace Api.Klinger.Configuration
             services.AddDefaultIdentity<IdentityUser>()
                     .AddRoles<IdentityRole>()
                     .AddEntityFrameworkStores<ApplicationDbContext>()
+                    .AddErrorDescriber<IdentityMessagePtBr>()
                     .AddDefaultTokenProviders();
 
             return services;
