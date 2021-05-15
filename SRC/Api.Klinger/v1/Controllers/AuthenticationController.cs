@@ -1,4 +1,5 @@
-﻿using Api.Klinger.Extensions;
+﻿using Api.Klinger.Controllers;
+using Api.Klinger.Extensions;
 using Api.Klinger.ViewModels;
 using AutoMapper;
 using Business.Interfaces;
@@ -14,9 +15,10 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Api.Klinger.Controllers
-{
-    [Route("Api/Account")]
+namespace Api.Klinger.v1.Controllers
+{        
+    [ApiVersion("1.0")]
+    [Route("Api/v{version:ApiVersion}/Account")]
     [DisableCors]
     public class AuthenticationController : MainController
     {

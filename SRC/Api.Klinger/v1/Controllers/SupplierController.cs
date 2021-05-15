@@ -1,4 +1,5 @@
-﻿using Api.Klinger.Extensions;
+﻿using Api.Klinger.Controllers;
+using Api.Klinger.Extensions;
 using Api.Klinger.ViewModels;
 using AutoMapper;
 using Business.Interfaces;
@@ -9,10 +10,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Api.Klinger.Controllers
+namespace Api.Klinger.v1.Controllers
 {
     [Authorize]
-    [Route("api/supplier")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/supplier")]
     public class SupplierController : MainController
     {
         private readonly ISupplierRepository _supplierRepository;

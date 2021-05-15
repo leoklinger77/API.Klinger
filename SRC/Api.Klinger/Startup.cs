@@ -2,6 +2,7 @@ using Api.Klinger.Configuration;
 using Data.Context;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,16 +25,16 @@ namespace Api.Klinger
 
             services.AddIdentityConfiguration(Configuration);
             services.WebApiConfig();
+            services.AddSwggerConfig();
             services.ResolveDependencies();            
         }                
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
+            app.UseRouting();
             if (env.IsDevelopment())
             {
                 app.UseCors("Development");
                 app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Api.Klinger v1"));
             }
             else
             {
@@ -41,6 +42,7 @@ namespace Api.Klinger
                 app.UseHsts();
             }            
             app.UseMvcConfiguration();
+            app.UseSwaggerConfig(provider);
         }
     }
 }

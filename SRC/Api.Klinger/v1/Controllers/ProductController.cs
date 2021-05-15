@@ -1,4 +1,5 @@
-﻿using Api.Klinger.Extensions;
+﻿using Api.Klinger.Controllers;
+using Api.Klinger.Extensions;
 using Api.Klinger.ViewModels;
 using AutoMapper;
 using Business.Interfaces;
@@ -11,10 +12,11 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Api.Klinger.Controllers
+namespace Api.Klinger.v1.Controllers
 {
     [Authorize]
-    [Route("api/Product")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:ApiVersion}/Product")]
     public class ProductController : MainController
     {
         private readonly IProductRepository _productRepository;

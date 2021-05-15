@@ -9,7 +9,7 @@
     }
   },
   "profiles": {
-    "IIS Deve": {
+    "IIS Dev": {
       "commandName": "IISExpress",
       "launchBrowser": true,
       "launchUrl": "swagger",
