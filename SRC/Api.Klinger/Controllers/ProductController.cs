@@ -21,8 +21,8 @@ namespace Api.Klinger.Controllers
         private readonly IProductService _productService;
 
         public ProductController(INotifier notifier, IMapper mapper, IProductService productService, 
-                                 IProductRepository productRepository) 
-                                 : base(notifier, mapper)
+                                 IProductRepository productRepository, IUser user)
+                                        : base(notifier, mapper, user)
         {
             _productService = productService;
             _productRepository = productRepository;

@@ -19,12 +19,31 @@ namespace Api.Klinger.Configuration
             {
                 options.SuppressModelStateInvalidFilter = true;
             });
-                        
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy("Development",
+                    builder => builder
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+
+                    .AllowCredentials()
+                    .SetIsOriginAllowed(hostName => true));
+
+                options.AddPolicy("Production",
+                    builder => builder
+                    .WithMethods("GET")
+                    .WithOrigins("http://klinger.com")
+                    .SetIsOriginAllowedToAllowWildcardSubdomains()
+                    //.WithHeaders(HeaderNames.ContentType, "x-costom-header") //Registranção de Headers
+                    .AllowAnyHeader());                   
+            });
 
             return services;
         }
         public static IApplicationBuilder UseMvcConfiguration(this IApplicationBuilder app)
-        {
+        {            
+            app.UseHttpsRedirection();
             app.UseRouting();
             app.UseAuthentication();            
             app.UseAuthorization();

@@ -1,9 +1,11 @@
-﻿using AutoMapper;
+﻿using Api.Klinger.Extensions;
+using AutoMapper;
 using Business.Interfaces;
 using Business.Notifications;
 using Business.Services;
 using Data.Context;
 using Data.Repository;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Api.Klinger.Configuration
@@ -22,6 +24,10 @@ namespace Api.Klinger.Configuration
             services.AddScoped<INotifier, Notifier>();
 
             services.AddScoped<IMapper, Mapper>();
+
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddScoped<IUser, AspNetUser>();
+            
 
             return services;
         }

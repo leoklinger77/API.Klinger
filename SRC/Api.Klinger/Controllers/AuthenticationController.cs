@@ -2,22 +2,22 @@
 using Api.Klinger.ViewModels;
 using AutoMapper;
 using Business.Interfaces;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Api.Klinger.Controllers
 {
     [Route("Api/Account")]
+    [DisableCors]
     public class AuthenticationController : MainController
     {
         private readonly SignInManager<IdentityUser> _signInManager;
@@ -26,8 +26,8 @@ namespace Api.Klinger.Controllers
 
         public AuthenticationController(INotifier notifier, IMapper mapper,
                                         UserManager<IdentityUser> userManager,
-                                        SignInManager<IdentityUser> signInManager, IOptions<AppSettings> appSettings) 
-                                        : base(notifier, mapper)
+                                        SignInManager<IdentityUser> signInManager, IOptions<AppSettings> appSettings, IUser user)
+                                        : base(notifier, mapper, user)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -50,8 +50,8 @@ namespace Api.Klinger.Controllers
             if (result.Succeeded)
             {
                 await _signInManager.SignInAsync(user, false);
-                
-                return CustomResponse(registerUser);
+
+                return CustomResponse(await GeneratorToken(registerUser.Email));
             }
 
             foreach (var error in result.Errors)
@@ -67,7 +67,7 @@ namespace Api.Klinger.Controllers
 
             var result = await _signInManager.PasswordSignInAsync(loginUser.Email, loginUser.Password, false, true);
             if (result.Succeeded)
-            {                
+            {
                 return CustomResponse(await GeneratorToken(loginUser.Email));
             }
             else if (result.IsLockedOut)
@@ -79,8 +79,8 @@ namespace Api.Klinger.Controllers
             return CustomResponse();
         }
 
-        private async Task<string> GeneratorToken(string email)
-        {   
+        private async Task<LoginResponsaViewModel> GeneratorToken(string email)
+        {
             var user = await _userManager.FindByEmailAsync(email);
             var claims = await _userManager.GetClaimsAsync(user);
             var userRoles = await _userManager.GetRolesAsync(user);
@@ -113,10 +113,23 @@ namespace Api.Klinger.Controllers
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
             });
 
-            return tokenHandler.WriteToken(token);
+
+            var response = new LoginResponsaViewModel
+            {
+                AccessToken = tokenHandler.WriteToken(token),
+                ExpiresIn = TimeSpan.FromHours(_appSettings.ExpiracaoHoras).TotalSeconds,
+                User = new UserTokenViewModel
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    Claims = claims.Select(x => new ClaimViewModel { Type = x.Type, Value = x.Value })
+                }
+            };
+
+            return response;
         }
 
         private static long ToUnixEpochDate(DateTime date)
-            =>(long)Math.Round((date.ToUniversalTime() - new DateTimeOffset(1970,1,1,0,0,0,TimeSpan.Zero)).TotalSeconds);
+            => (long)Math.Round((date.ToUniversalTime() - new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero)).TotalSeconds);
     }
 }

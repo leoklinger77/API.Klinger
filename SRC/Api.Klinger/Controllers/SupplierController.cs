@@ -19,14 +19,14 @@ namespace Api.Klinger.Controllers
         private readonly ISupplierService _supplierService;
         private readonly IAddressRepository _addressRepository;
         public SupplierController(INotifier notifier, ISupplierRepository supplier, ISupplierService supplierService,
-                                  IMapper mapper, IAddressRepository addressRepository)
-                                  : base(notifier, mapper)
+                                  IMapper mapper, IAddressRepository addressRepository, IUser user)
+                                        : base(notifier, mapper, user)
         {
             _supplierRepository = supplier;
             _supplierService = supplierService;
             _addressRepository = addressRepository;
         }
-
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<SupplierViewModel>>> FindAll()
         {

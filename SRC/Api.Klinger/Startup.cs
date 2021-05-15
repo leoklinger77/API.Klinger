@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
 
 namespace Api.Klinger
 {
@@ -31,12 +30,16 @@ namespace Api.Klinger
         {
             if (env.IsDevelopment())
             {
+                app.UseCors("Development");
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Api.Klinger v1"));
             }
-
-            app.UseHttpsRedirection();            
+            else
+            {
+                app.UseCors("Production");
+                app.UseHsts();
+            }            
             app.UseMvcConfiguration();
         }
     }

@@ -3,7 +3,7 @@ using Business.Interfaces;
 using Business.Notifications;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using System.Collections.Generic;
+using System;
 using System.Linq;
 
 namespace Api.Klinger.Controllers
@@ -13,10 +13,21 @@ namespace Api.Klinger.Controllers
     {
         private readonly INotifier _notifier;
         protected readonly IMapper _mapper;
-        protected MainController(INotifier notifier, IMapper mapper)
+        public readonly IUser AppUser;
+
+        protected Guid UserId { get; set; }
+        protected bool UserIsAuthenticate { get; set; }
+        protected MainController(INotifier notifier, IMapper mapper, IUser appUser)
         {
             _notifier = notifier;
             _mapper = mapper;
+            AppUser = appUser;
+
+            if (AppUser.IsAuthenticated())
+            {
+                UserId = appUser.GetUserId();
+                UserIsAuthenticate = true;
+            }
         }
 
         protected ActionResult CustomResponse(ModelStateDictionary modelState)
