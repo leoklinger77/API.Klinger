@@ -10,7 +10,9 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Api.Klinger.Controllers
@@ -24,7 +26,8 @@ namespace Api.Klinger.Controllers
 
         public AuthenticationController(INotifier notifier, IMapper mapper,
                                         UserManager<IdentityUser> userManager,
-                                        SignInManager<IdentityUser> signInManager, IOptions<AppSettings> appSettings) : base(notifier, mapper)
+                                        SignInManager<IdentityUser> signInManager, IOptions<AppSettings> appSettings) 
+                                        : base(notifier, mapper)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -65,7 +68,7 @@ namespace Api.Klinger.Controllers
             var result = await _signInManager.PasswordSignInAsync(loginUser.Email, loginUser.Password, false, true);
             if (result.Succeeded)
             {                
-                return CustomResponse(await GeneratorToken(""));
+                return CustomResponse(await GeneratorToken(loginUser.Email));
             }
             else if (result.IsLockedOut)
             {
@@ -77,12 +80,33 @@ namespace Api.Klinger.Controllers
         }
 
         private async Task<string> GeneratorToken(string email)
-        {
+        {   
+            var user = await _userManager.FindByEmailAsync(email);
+            var claims = await _userManager.GetClaimsAsync(user);
+            var userRoles = await _userManager.GetRolesAsync(user);
+
+
+            claims.Add(new Claim(JwtRegisteredClaimNames.Sub, user.Id));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Email, user.Email));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Nbf, ToUnixEpochDate(DateTime.UtcNow).ToString()));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Iat, ToUnixEpochDate(DateTime.UtcNow).ToString(), ClaimValueTypes.Integer64));
+
+            foreach (var userRole in userRoles)
+            {
+                claims.Add(new Claim("Role", userRole));
+            }
+
+            var identityClaims = new ClaimsIdentity();
+            identityClaims.AddClaims(claims);
+
+
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
 
             var token = tokenHandler.CreateToken(new SecurityTokenDescriptor
             {
+                Subject = identityClaims,
                 Issuer = _appSettings.Emissor,
                 Audience = _appSettings.ValidoEm,
                 Expires = DateTime.UtcNow.AddHours(_appSettings.ExpiracaoHoras),
@@ -91,5 +115,8 @@ namespace Api.Klinger.Controllers
 
             return tokenHandler.WriteToken(token);
         }
+
+        private static long ToUnixEpochDate(DateTime date)
+            =>(long)Math.Round((date.ToUniversalTime() - new DateTimeOffset(1970,1,1,0,0,0,TimeSpan.Zero)).TotalSeconds);
     }
 }

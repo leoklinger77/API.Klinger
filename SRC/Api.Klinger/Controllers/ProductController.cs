@@ -1,4 +1,5 @@
-﻿using Api.Klinger.ViewModels;
+﻿using Api.Klinger.Extensions;
+using Api.Klinger.ViewModels;
 using AutoMapper;
 using Business.Interfaces;
 using Business.Models;
@@ -19,7 +20,9 @@ namespace Api.Klinger.Controllers
         private readonly IProductRepository _productRepository;
         private readonly IProductService _productService;
 
-        public ProductController(INotifier notifier, IMapper mapper, IProductService productService, IProductRepository productRepository) : base(notifier, mapper)
+        public ProductController(INotifier notifier, IMapper mapper, IProductService productService, 
+                                 IProductRepository productRepository) 
+                                 : base(notifier, mapper)
         {
             _productService = productService;
             _productRepository = productRepository;
@@ -35,6 +38,7 @@ namespace Api.Klinger.Controllers
             return CustomResponse(await FindById(id));
         }
 
+        [ClaimsCustomAuthorize("Produto", "Adicionar")]
         [HttpPost]
         public async Task<ActionResult> Insert(ProductViewModel productViewModel)
         {

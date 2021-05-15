@@ -1,7 +1,9 @@
-﻿using Api.Klinger.ViewModels;
+﻿using Api.Klinger.Extensions;
+using Api.Klinger.ViewModels;
 using AutoMapper;
 using Business.Interfaces;
 using Business.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -15,11 +17,13 @@ namespace Api.Klinger.Controllers
     {
         private readonly ISupplierRepository _supplierRepository;
         private readonly ISupplierService _supplierService;
-        private readonly IAddressRepository _addressRepository;                
-        public SupplierController(INotifier notifier, ISupplierRepository supplier, ISupplierService supplierService, IMapper mapper, IAddressRepository addressRepository) : base(notifier, mapper)
+        private readonly IAddressRepository _addressRepository;
+        public SupplierController(INotifier notifier, ISupplierRepository supplier, ISupplierService supplierService,
+                                  IMapper mapper, IAddressRepository addressRepository)
+                                  : base(notifier, mapper)
         {
             _supplierRepository = supplier;
-            _supplierService = supplierService;            
+            _supplierService = supplierService;
             _addressRepository = addressRepository;
         }
 
@@ -41,62 +45,67 @@ namespace Api.Klinger.Controllers
             return CustomResponse(db);
         }
 
+        [ClaimsCustomAuthorize("Fornecedor", "Adicionar")]
         [HttpPost]
         public async Task<ActionResult<SupplierViewModel>> Insert(SupplierViewModel supplierViewModelviewModel)
         {
             if (!ModelState.IsValid) return CustomResponse(ModelState);
             await _supplierService.Insert(_mapper.Map<Supplier>(supplierViewModelviewModel));
             supplierViewModelviewModel.Address.SupplierId = supplierViewModelviewModel.Id;
-            return CustomResponse(supplierViewModelviewModel);            
+            return CustomResponse(supplierViewModelviewModel);
         }
 
+        [ClaimsCustomAuthorize("Fornecedor", "Atualizar")]
         [HttpPut("{id:Guid}")]
         public async Task<ActionResult<SupplierViewModel>> Update(Guid id, SupplierViewModel supplierViewModelviewModel)
         {
             if (id != supplierViewModelviewModel.Id)
-            {                
+            {
                 ErrorNotifier("O Id informado não é o mesmo que foi passado na query");
                 return CustomResponse(supplierViewModelviewModel);
             }
-            
+
             if (!ModelState.IsValid) return CustomResponse(ModelState);
-            
+
             await _supplierService.Update(_mapper.Map<Supplier>(supplierViewModelviewModel));
-            
+
             return CustomResponse(supplierViewModelviewModel);
 
         }
 
+        [ClaimsCustomAuthorize("Fornecedor", "Remover")]
         [HttpDelete("{id:Guid}")]
         public async Task<ActionResult<SupplierViewModel>> Delete(Guid id)
         {
             var supplier = _mapper.Map<Supplier>(await _supplierRepository.FindSupplierProductAddress(id));
 
-            if (supplier == null) 
+            if (supplier == null)
             {
                 ErrorNotifier("Fornecedor não encontrado");
                 return CustomResponse();
-            }                        
+            }
             await _supplierService.Remove(id);
             return CustomResponse();
         }
+
         [HttpGet("FindByAddress/{id:Guid}")]
         public async Task<ActionResult> FindByAddress(Guid id)
         {
             return CustomResponse(await _addressRepository.FindById(id));
         }
+
         [HttpPut("UpdateAddress/{id:Guid}")]
         public async Task<ActionResult> UpdateAddress(Guid Id, AddressViewModel addressViewModel)
         {
-            if(Id != addressViewModel.Id)
+            if (Id != addressViewModel.Id)
             {
                 ErrorNotifier("O Id informado não é o mesmo que foi passado na query");
                 return CustomResponse(addressViewModel);
             }
             if (!ModelState.IsValid) return CustomResponse(ModelState);
-            
+
             await _supplierService.UpdateAddress(_mapper.Map<Address>(addressViewModel));
-            
+
             return CustomResponse(addressViewModel);
         }
     }
