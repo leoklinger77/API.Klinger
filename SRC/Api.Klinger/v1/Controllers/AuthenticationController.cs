@@ -6,6 +6,7 @@ using Business.Interfaces;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -16,7 +17,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Api.Klinger.v1.Controllers
-{        
+{
     [ApiVersion("1.0")]
     [Route("Api/v{version:ApiVersion}/Account")]
     [DisableCors]
@@ -25,15 +26,19 @@ namespace Api.Klinger.v1.Controllers
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly AppSettings _appSettings;
+        private readonly ILogger _logger;
 
         public AuthenticationController(INotifier notifier, IMapper mapper,
                                         UserManager<IdentityUser> userManager,
-                                        SignInManager<IdentityUser> signInManager, IOptions<AppSettings> appSettings, IUser user)
+                                        SignInManager<IdentityUser> signInManager,
+                                        IOptions<AppSettings> appSettings, IUser user,
+                                        ILogger<AuthenticationController> logger)
                                         : base(notifier, mapper, user)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _appSettings = appSettings.Value;
+            _logger = logger;
         }
         [HttpPost("Register")]
         public async Task<ActionResult> Register(RegisterUserViewModel registerUser)
@@ -70,6 +75,7 @@ namespace Api.Klinger.v1.Controllers
             var result = await _signInManager.PasswordSignInAsync(loginUser.Email, loginUser.Password, false, true);
             if (result.Succeeded)
             {
+                _logger.LogInformation("Usuario " + loginUser.Email + " Logado com sucesso");
                 return CustomResponse(await GeneratorToken(loginUser.Email));
             }
             else if (result.IsLockedOut)

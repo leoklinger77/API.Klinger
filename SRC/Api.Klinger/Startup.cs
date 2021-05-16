@@ -1,4 +1,5 @@
 using Api.Klinger.Configuration;
+using Api.Klinger.Extensions;
 using Data.Context;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -26,7 +27,9 @@ namespace Api.Klinger
             services.AddIdentityConfiguration(Configuration);
             services.WebApiConfig();
             services.AddSwggerConfig();
-            services.ResolveDependencies();            
+            services.ResolveDependencies();
+
+            services.AddLoggingConfiguration();
         }                
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IApiVersionDescriptionProvider provider)
         {
@@ -40,9 +43,11 @@ namespace Api.Klinger
             {
                 app.UseCors("Production");
                 app.UseHsts();
-            }            
+            }
+            app.UseMiddleware<ExceptionMiddleware>();
             app.UseMvcConfiguration();
             app.UseSwaggerConfig(provider);
+            app.UseLoggingConfiguration();
         }
     }
 }
