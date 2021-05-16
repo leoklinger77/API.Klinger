@@ -9,7 +9,7 @@ namespace Api.Klinger.Extensions
     public class AspNetUser : IUser
     {
         private readonly IHttpContextAccessor _accessor;
-public AspNetUser(IHttpContextAccessor accessor)
+        public AspNetUser(IHttpContextAccessor accessor)
         {
             _accessor = accessor;
         }

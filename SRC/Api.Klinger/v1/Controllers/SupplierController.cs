@@ -22,7 +22,7 @@ namespace Api.Klinger.v1.Controllers
         private readonly IAddressRepository _addressRepository;
         public SupplierController(INotifier notifier, ISupplierRepository supplier, ISupplierService supplierService,
                                   IMapper mapper, IAddressRepository addressRepository, IUser user)
-                                        : base(notifier, mapper, user)
+                                  : base(notifier, mapper, user)
         {
             _supplierRepository = supplier;
             _supplierService = supplierService;
